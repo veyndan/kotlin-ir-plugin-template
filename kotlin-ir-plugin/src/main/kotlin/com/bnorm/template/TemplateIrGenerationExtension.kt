@@ -18,17 +18,25 @@ package com.bnorm.template
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.name.FqName
 
 class TemplateIrGenerationExtension(
   private val messageCollector: MessageCollector,
   private val string: String,
-  private val file: String
+  private val file: String,
 ) : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-    messageCollector.report(CompilerMessageSeverity.INFO, "Argument 'string' = $string")
-    messageCollector.report(CompilerMessageSeverity.INFO, "Argument 'file' = $file")
+    val typeAnyNullable = pluginContext.irBuiltIns.anyNType
+
+    val debugLogAnnotation = pluginContext.referenceClass(FqName("DebugLog"))!!
+    val funPrintln = pluginContext.referenceFunctions(FqName("kotlin.io.println"))
+      .single {
+        val parameters = it.owner.valueParameters
+        parameters.size == 1 && parameters[0].type == typeAnyNullable
+      }
+
+    moduleFragment.transform(DebugLogTransformer(pluginContext, debugLogAnnotation, funPrintln), null)
   }
 }

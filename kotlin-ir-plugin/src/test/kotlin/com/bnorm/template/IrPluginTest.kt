@@ -27,16 +27,28 @@ class IrPluginTest {
   fun `IR plugin success`() {
     val result = compile(
       sourceFile = SourceFile.kotlin(
-        "main.kt", """
-fun main() {
-  println(debug())
-}
+        "main.kt",
+        """
+          annotation class DebugLog
 
-fun debug() = "Hello, World!"
-"""
+          fun main() {
+            println(greet())
+            println(greet(name = "Kotlin IR"))
+          }
+
+          @DebugLog
+          fun greet(greeting: String = "Hello", name: String = "World"): String {
+            Thread.sleep(15) // simulate work
+            return "${'$'}greeting, ${'$'}name!"
+          }
+        """
       )
     )
     assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+    val kClazz = result.classLoader.loadClass("MainKt")
+    val main = kClazz.declaredMethods.single { it.name == "main" && it.parameterCount == 0 }
+    main.invoke(null)
   }
 }
 
