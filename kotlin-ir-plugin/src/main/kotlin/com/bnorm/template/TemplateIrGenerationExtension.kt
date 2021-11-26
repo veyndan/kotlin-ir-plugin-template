@@ -18,9 +18,9 @@ package com.bnorm.template
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.util.dump
 
 class TemplateIrGenerationExtension(
   private val messageCollector: MessageCollector,
@@ -28,7 +28,8 @@ class TemplateIrGenerationExtension(
   private val file: String
 ) : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-    messageCollector.report(CompilerMessageSeverity.INFO, "Argument 'string' = $string")
-    messageCollector.report(CompilerMessageSeverity.INFO, "Argument 'file' = $file")
+    println(moduleFragment.dump())
+    moduleFragment.transform(RangeConstraintTransformer(pluginContext), null)
+    println(moduleFragment.dump())
   }
 }

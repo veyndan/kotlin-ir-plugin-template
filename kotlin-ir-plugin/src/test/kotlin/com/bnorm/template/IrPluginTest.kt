@@ -23,38 +23,103 @@ import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.junit.Test
 
 class IrPluginTest {
-  @Test
-  fun `IR plugin success`() {
-    val result = compile(
-      sourceFile = SourceFile.kotlin(
-        "main.kt", """
-fun main() {
-  println(debug())
-}
 
-fun debug() = "Hello, World!"
-"""
-      )
-    )
-    assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
-  }
+//    @Test
+//    fun `IR plugin want`() {
+//        val result = compile(
+//            sourceFile = SourceFile.kotlin(
+//                "main.kt",
+//                """
+//                    @com.bnorm.template.constraint.Range(from = 1, to = 3)
+//                    fun test(): com.bnorm.template.number.Int1To3 {
+//                        return com.bnorm.template.number.Int3
+//                    }
+//                """
+//            )
+//        )
+//        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+//
+//        val kClazz = result.classLoader.loadClass("MainKt")
+//        val test = kClazz.declaredMethods.single { it.name == "test" && it.parameterCount == 0 }
+//        test.invoke(null)
+//    }
+
+    @Test
+    fun `IR plugin success`() {
+        val result = compile(
+            sourceFile = SourceFile.kotlin(
+                "main.kt",
+                """
+                    @com.bnorm.template.constraint.Range(from = 1, to = 3)
+                    fun test(): Int {
+                        return 3
+                    }
+                """
+            )
+        )
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val kClazz = result.classLoader.loadClass("MainKt")
+        val test = kClazz.declaredMethods.single { it.name == "test" && it.parameterCount == 0 }
+        test.invoke(null)
+    }
+
+    @Test
+    fun `IR plugin success 2`() {
+        val result = compile(
+            sourceFile = SourceFile.kotlin(
+                "main.kt",
+                """
+                    @com.bnorm.template.constraint.Range(from = 1, to = 3)
+                    fun test(): Int {
+                        return 0 + 1
+                    }
+                """
+            )
+        )
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val kClazz = result.classLoader.loadClass("MainKt")
+        val test = kClazz.declaredMethods.single { it.name == "test" && it.parameterCount == 0 }
+        test.invoke(null)
+    }
+
+    @Test
+    fun `IR plugin success 3`() {
+        val result = compile(
+            sourceFile = SourceFile.kotlin(
+                "main.kt",
+                """
+                    @com.bnorm.template.constraint.Range(from = 1, to = 3)
+                    fun test(): Int {
+                        return 0 + 1 + 1
+                    }
+                """
+            )
+        )
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val kClazz = result.classLoader.loadClass("MainKt")
+        val test = kClazz.declaredMethods.single { it.name == "test" && it.parameterCount == 0 }
+        test.invoke(null)
+    }
 }
 
 fun compile(
-  sourceFiles: List<SourceFile>,
-  plugin: ComponentRegistrar = TemplateComponentRegistrar(),
+    sourceFiles: List<SourceFile>,
+    plugin: ComponentRegistrar = TemplateComponentRegistrar(),
 ): KotlinCompilation.Result {
-  return KotlinCompilation().apply {
-    sources = sourceFiles
-    useIR = true
-    compilerPlugins = listOf(plugin)
-    inheritClassPath = true
-  }.compile()
+    return KotlinCompilation().apply {
+        sources = sourceFiles
+        useIR = true
+        compilerPlugins = listOf(plugin)
+        inheritClassPath = true
+    }.compile()
 }
 
 fun compile(
-  sourceFile: SourceFile,
-  plugin: ComponentRegistrar = TemplateComponentRegistrar(),
+    sourceFile: SourceFile,
+    plugin: ComponentRegistrar = TemplateComponentRegistrar(),
 ): KotlinCompilation.Result {
-  return compile(listOf(sourceFile), plugin)
+    return compile(listOf(sourceFile), plugin)
 }
